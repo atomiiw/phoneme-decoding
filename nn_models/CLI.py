@@ -35,20 +35,21 @@ def data_prep(data_path = '../data/pt_decoding_data_S62.pkl',
 
     augmentations = [augs.time_shifting, augs.noise_jitter, augs.scaling]
     data = torch.Tensor(tar_data[0])
+    labels = torch.Tensor(tar_data[1]).long().unsqueeze(1) - 1 
     align_labels = torch.Tensor(tar_data[2]).long() - 1
     pool_data = [(torch.Tensor(p[0]), torch.Tensor(p[2]).long() - 1, torch.Tensor(p[2]).long() - 1) for p in pre_data]
 
     if folds_exist(fold_data_path, n_folds):
         print("✅ All folds found, reusing existing DataModule...")
         dm = AlignedMicroDataModule(
-            data, align_labels, align_labels, pool_data, AlignCCA,
+            data, labels, align_labels, pool_data, AlignCCA,
             batch_size=batch_size, folds=n_folds, val_size=val_size,
             augmentations=augmentations, data_path=fold_data_path
         )
     else:
         print("⚙️ Generating new folds...")
         dm = AlignedMicroDataModule(
-            data, align_labels, align_labels, pool_data, AlignCCA,
+            data, labels, align_labels, pool_data, AlignCCA,
             batch_size=batch_size, folds=n_folds, val_size=val_size,
             augmentations=augmentations, data_path=fold_data_path
         )
