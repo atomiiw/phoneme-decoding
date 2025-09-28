@@ -38,13 +38,6 @@ def data_prep(data_path = '../data/pt_decoding_data_S62.pkl',
     align_labels = torch.Tensor(tar_data[2]).long() - 1
     pool_data = [(torch.Tensor(p[0]), torch.Tensor(p[2]).long() - 1, torch.Tensor(p[2]).long() - 1) for p in pre_data]
 
-    torch.save(
-        {"patient_id": patient_id, 
-         "n_folds": n_folds, 
-         "dm": dm, 
-         "data": torch.Tensor(tar_data[0])}, 
-         f"{fold_data_path}/{patient_id}_prep.pt")
-
     if folds_exist(fold_data_path, n_folds):
         print("✅ All folds found, reusing existing DataModule...")
         dm = AlignedMicroDataModule(
@@ -60,6 +53,13 @@ def data_prep(data_path = '../data/pt_decoding_data_S62.pkl',
             augmentations=augmentations, data_path=fold_data_path
         )
         dm.setup()
+    
+    torch.save(
+        {"patient_id": patient_id, 
+         "n_folds": n_folds, 
+         "dm": dm, 
+         "data": torch.Tensor(tar_data[0])}, 
+         f"{fold_data_path}/{patient_id}_prep.pt")
 
     pass
 
