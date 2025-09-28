@@ -1,0 +1,16 @@
+# Core dependencies
+numpy
+torch
+lightning        # PyTorch Lightning (new package name is "lightning")
+fire             # Google Fire for CLI
+
+# Data handling
+scikit-learn     # likely needed for utils/CCA, metrics, etc.
+pandas           # often useful in dataloaders
+
+# Logging / callbacks
+tensorboard      # for Lightning logging
+
+# Optional but common
+matplotlib       # plotting (if used in notebooks)
+seaborn          # visualization (if used in notebooks)
