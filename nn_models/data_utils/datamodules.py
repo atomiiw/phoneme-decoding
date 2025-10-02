@@ -196,7 +196,14 @@ class AlignedMicroDataModule(L.LightningDataModule):
 
     def setup(self, stage=None):
         cv = self.select_cv(self.folds)
-        for k, (train_idx, test_idx) in enumerate(cv.split(self.data, self.labels.squeeze(1))):
+
+        # 🔍 Debug: check shape and a sample of labels
+        print("DEBUG labels.shape:", self.labels.shape)
+        print("DEBUG first 5 rows of labels:\n", self.labels[:5])
+
+        # Use first column for CV splitting but keep full labels for data
+        cv_labels = self.labels[:, 0] if len(self.labels.shape) > 1 else self.labels
+        for k, (train_idx, test_idx) in enumerate(cv.split(self.data, cv_labels)):
             train_data, test_data = self.data[train_idx], self.data[test_idx]
             train_labels, test_labels = (self.labels[train_idx],
                                          self.labels[test_idx])

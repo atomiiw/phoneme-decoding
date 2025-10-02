@@ -42,14 +42,14 @@ def data_prep(data_path = '../data/pt_decoding_data_S62.pkl',
     if folds_exist(fold_data_path, n_folds):
         print("✅ All folds found, reusing existing DataModule...")
         dm = AlignedMicroDataModule(
-            data, labels, align_labels, pool_data, AlignCCA,
+            data, align_labels, align_labels, pool_data, AlignCCA,
             batch_size=batch_size, folds=n_folds, val_size=val_size,
             augmentations=augmentations, data_path=fold_data_path
         )
     else:
         print("⚙️ Generating new folds...")
         dm = AlignedMicroDataModule(
-            data, labels, align_labels, pool_data, AlignCCA,
+            data, align_labels, align_labels, pool_data, AlignCCA,
             batch_size=batch_size, folds=n_folds, val_size=val_size,
             augmentations=augmentations, data_path=fold_data_path
         )
