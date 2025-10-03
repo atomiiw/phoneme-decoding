@@ -176,6 +176,14 @@ class Seq2SeqRNN(BaseLightningModel):
         outputs = torch.stack(outputs, dim=1)  
         return outputs
     
+    def configure_optimizers(self):
+        # Override base class method to add exponential LR decay for Seq2SeqRNN only
+        # Other models inherit the base class method without LR scheduling
+        optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate,
+                                    weight_decay=self.l2_reg)
+        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
+        return [optimizer], [scheduler]
+    
     def training_step(self, batch, batch_idx):
         x, y = batch
         # use teacher forcing during training

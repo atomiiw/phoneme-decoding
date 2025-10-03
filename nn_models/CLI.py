@@ -81,7 +81,7 @@ def train(n_filters = 100,          # Number of CNN filters
           hidden_size = 128,         # RNN hidden layer size
           cnn_dropout = 0.3,         # CNN dropout rate
           rnn_dropout = 0.3,         # RNN dropout rate
-          learning_rate = 1e-4,      # Training learning rate
+          learning_rate = 0.1,      # Training learning rate (starting point, will be exp decayed)
           l2_reg = 1e-5,             # L2 regularization strength
           n_iters = 20,              # Number of training iterations (total # of training trials = n_fold * n_iters)
           fold_data_path = '../data/training_data_pooled',  # Path to the parent folder of fold_data
