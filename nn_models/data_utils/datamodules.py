@@ -245,6 +245,11 @@ class AlignedMicroDataModule(L.LightningDataModule):
                     aug_pool_data[i][2] = torch.cat((aug_pool_data[i][2], y_a))
             
             # clear unnecessary data after augmentations
+            original_size = len(train_data)
+            augmented_size = len(aug_data)
+            print(f"Original data: {original_size} samples")
+            print(f"Augmented data: {augmented_size} samples") 
+            print(f"Augmentation ratio: {augmented_size/original_size:.1f}x")
             del train_data, train_labels, align_labels
 
             # align pooled data to current data

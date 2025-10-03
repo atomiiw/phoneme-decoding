@@ -16,7 +16,16 @@ class BaseLightningModel(L.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self(x)
-        loss = self.criterion(y_hat, y)
+        
+        # Apply label smoothing
+        if self.label_smoothing > 0:
+            y_smooth = torch.zeros_like(y_hat)
+            y_smooth.scatter_(2, y.unsqueeze(2), 1.0 - self.label_smoothing)
+            y_smooth += self.label_smoothing / self.num_classes
+            loss = F.cross_entropy(y_hat.view(-1, self.num_classes), y_smooth.view(-1, self.num_classes))
+        else:
+            loss = self.criterion(y_hat, y)
+            
         acc = cmat_acc(y_hat, y, self.num_classes)
         res = {'train_loss': loss, 'train_acc': acc}
         self.log_dict(res, prog_bar=True)
@@ -113,11 +122,12 @@ class Seq2SeqRNN(BaseLightningModel):
                  n_enc_layers, n_dec_layers, kernel_size, stride=1, padding=0,
                  cnn_dropout=0.3, rnn_dropout=0.3, model_type='gru', learning_rate=1e-3,
                  l2_reg=1e-5, criterion=nn.CrossEntropyLoss(), activation=True,
-                 seq_length=3, decay_iters=20):
+                 seq_length=3, decay_iters=20, label_smoothing=0.1):
         super(Seq2SeqRNN, self).__init__(learning_rate=learning_rate,
                                          l2_reg=l2_reg, criterion=criterion)
         self.num_classes = num_classes
         self.seq_length = seq_length
+        self.label_smoothing = label_smoothing
         self.temporal_conv = TemporalConv(in_channels, n_filters, kernel_size,
                                           stride, padding, cnn_dropout,
                                           activation=activation)

@@ -33,10 +33,17 @@ def data_prep(data_path = '../data/pt_decoding_data_S62.pkl',
                                                     lab_type=lab_type,
                                                     algn_type=algn_type)
 
-    augmentations = [augs.time_shifting, augs.noise_jitter, augs.scaling]
+    augmentations = [
+        augs.time_shifting, augs.noise_jitter, augs.scaling,
+        augs.time_warping, augs.time_masking, augs.time_shifting
+    ]
     data = torch.Tensor(tar_data[0])
     labels = torch.Tensor(tar_data[1]).long().unsqueeze(1) - 1 
     align_labels = torch.Tensor(tar_data[2]).long() - 1
+    
+    # Keep original 3-column structure for DataModule compatibility
+    # Label smoothing will be handled in the model loss function
+    
     pool_data = [(torch.Tensor(p[0]), torch.Tensor(p[2]).long() - 1, torch.Tensor(p[2]).long() - 1) for p in pre_data]
 
     if folds_exist(fold_data_path, n_folds):
@@ -58,25 +65,40 @@ def data_prep(data_path = '../data/pt_decoding_data_S62.pkl',
     torch.save(
         {"patient_id": patient_id, 
          "n_folds": n_folds, 
-         "dm": dm, 
-         "data": torch.Tensor(tar_data[0])}, 
+         "data": data,
+         "labels": labels,
+         "align_labels": align_labels,
+         "pool_data": pool_data,
+         "batch_size": batch_size,
+         "val_size": val_size,
+         "augmentations": augmentations}, 
          f"{fold_data_path}/{patient_id}_prep.pt")
 
     pass
 
 
-def train(n_filters = 100,
-          hidden_size = 500,
-          cnn_dropout = 0.3,
-          rnn_dropout = 0.3,
-          learning_rate = 1e-4,
-          l2_reg = 1e-5,
-          n_iters = 20,
-          fold_data_path = '../data/training_data_pooled', 
-          patient_id = 'S14', ):
+def train(n_filters = 100,          # Number of CNN filters
+          hidden_size = 128,         # RNN hidden layer size
+          cnn_dropout = 0.3,         # CNN dropout rate
+          rnn_dropout = 0.3,         # RNN dropout rate
+          learning_rate = 1e-4,      # Training learning rate
+          l2_reg = 1e-5,             # L2 regularization strength
+          n_iters = 20,              # Number of training iterations (total # of training trials = n_fold * n_iters)
+          fold_data_path = '../data/training_data_pooled',  # Path to the parent folder of fold_data
+          patient_id = 'S14',        # Patient ID to train on
+          label_smoothing = 0.1):    # Label smoothing strength (10% probability is distributed among the untrue classes)
     
     saved = torch.load(f"{fold_data_path}/{patient_id}_prep.pt")
-    n_folds, dm, data = saved["n_folds"], saved["dm"], saved["data"]
+    n_folds, data = saved["n_folds"], saved["data"]
+    
+    # Recreate DataModule with current fixed code
+    dm = AlignedMicroDataModule(
+        saved["data"], saved["labels"], saved["align_labels"], 
+        saved["pool_data"], AlignCCA,
+        batch_size=saved["batch_size"], folds=saved["n_folds"], 
+        val_size=saved["val_size"], augmentations=saved["augmentations"], 
+        data_path=fold_data_path
+    )
 
     gclip_val = 0.5
     fs = 200
@@ -114,7 +136,7 @@ def train(n_filters = 100,
             # build a fresh Seq2SeqRNN for this fold
             model = Seq2SeqRNN(in_channels, n_filters, hidden_size, num_classes, n_enc_layers,
                             n_dec_layers, kernel_size, stride, padding, cnn_dropout, rnn_dropout, model_type,
-                            learning_rate, l2_reg, activation=activ, decay_iters=max_epochs)
+                            learning_rate, l2_reg, activation=activ, decay_iters=max_epochs, label_smoothing=label_smoothing)
 
             # callbacks: save best model + log learning rate
             callbacks = [
