@@ -38,7 +38,7 @@ def data_prep(data_path = '../data/pt_decoding_data_S62.pkl',
         augs.time_warping, augs.time_masking, augs.time_shifting
     ]
     data = torch.Tensor(tar_data[0])
-    labels = torch.Tensor(tar_data[1]).long().unsqueeze(1) - 1 
+    labels = torch.Tensor(tar_data[2]).long() - 1
     align_labels = torch.Tensor(tar_data[2]).long() - 1
     
     # Keep original 3-column structure for DataModule compatibility
@@ -92,11 +92,15 @@ def train(n_filters = 100,          # Number of CNN filters
     n_folds, data = saved["n_folds"], saved["data"]
     
     # Recreate DataModule with current fixed code
+    augmentations = [
+        augs.time_shifting, augs.noise_jitter, augs.scaling,
+        augs.time_warping, augs.time_masking, augs.time_shifting
+    ]
     dm = AlignedMicroDataModule(
         saved["data"], saved["labels"], saved["align_labels"], 
         saved["pool_data"], AlignCCA,
         batch_size=saved["batch_size"], folds=saved["n_folds"], 
-        val_size=saved["val_size"], augmentations=saved["augmentations"], 
+        val_size=saved["val_size"], augmentations=augmentations, 
         data_path=fold_data_path
     )
 
