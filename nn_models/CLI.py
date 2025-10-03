@@ -159,9 +159,11 @@ def train(n_filters = 100,          # Number of CNN filters
                                 enable_progress_bar=False)
 
             # train and validate for all epochs
+            print("🚀 Starting training...")
             trainer.fit(model=model, 
                         train_dataloaders=dm.train_dataloader(), 
                         val_dataloaders=dm.val_dataloader())
+            print("✅ Training finished")
 
             # print training/validation metrics
             print(trainer.logged_metrics)
