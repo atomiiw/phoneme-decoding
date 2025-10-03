@@ -20,7 +20,7 @@ def data_prep(data_path = '../data/pt_decoding_data_S62.pkl',
               fold_data_path = '../data/training_data_pooled', 
               patient_id = 'S14', 
               batch_size = 500, 
-              n_folds = 20, 
+              n_folds = 10, 
               val_size = 0.1):
     
     data_filename = os.path.expanduser(data_path)
@@ -83,7 +83,7 @@ def train(n_filters = 100,          # Number of CNN filters
           rnn_dropout = 0.3,         # RNN dropout rate
           learning_rate = 0.1,      # Training learning rate (starting point, will be exp decayed)
           l2_reg = 1e-5,             # L2 regularization strength
-          n_iters = 20,              # Number of training iterations (total # of training trials = n_fold * n_iters)
+          n_iters = 2,              # Number of training iterations (total # of training trials = n_fold * n_iters)
           fold_data_path = '../data/training_data_pooled',  # Path to the parent folder of fold_data
           patient_id = 'S14',        # Patient ID to train on
           label_smoothing = 0.1):    # Label smoothing strength (10% probability is distributed among the untrue classes)
