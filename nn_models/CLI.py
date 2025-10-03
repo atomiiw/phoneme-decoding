@@ -88,7 +88,7 @@ def train(n_filters = 100,          # Number of CNN filters
           patient_id = 'S14',        # Patient ID to train on
           label_smoothing = 0.1):    # Label smoothing strength (10% probability is distributed among the untrue classes)
     
-    saved = torch.load(f"{fold_data_path}/{patient_id}_prep.pt")
+    saved = torch.load(f"{fold_data_path}/{patient_id}_prep.pt", weights_only=False)
     n_folds, data = saved["n_folds"], saved["data"]
     
     # Recreate DataModule with current fixed code
